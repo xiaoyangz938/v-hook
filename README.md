@@ -70,6 +70,24 @@ Create the `community_items` table with:
 
 Then create a public Storage bucket, usually named `community-assets`.
 
+#### Supabase Setup Steps
+
+1. Create a new Supabase project
+2. Open `SQL Editor`
+3. Run [supabase/schema.sql](D:\Augusta\Desktop\hook\v-hook-website (1)\supabase\schema.sql)
+4. Open `Storage`
+5. Create a bucket named `community-assets`
+6. Mark the bucket as `Public`
+7. In `Project Settings -> API`, copy:
+   - `Project URL`
+   - `service_role` key
+8. In Render, add:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_STORAGE_BUCKET=community-assets`
+
+Once those values are present, V-Hook switches from local file mode to Supabase mode automatically.
+
 ### Public Site Safety
 
 The public site keeps uploads disabled by default through:

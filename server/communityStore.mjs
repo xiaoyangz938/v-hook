@@ -191,6 +191,7 @@ function createLocalCommunityStore(options) {
 
 function createSupabaseCommunityStore(options) {
   const {
+    communityDataPath,
     supabaseUrl,
     supabaseServiceRoleKey,
     supabaseBucketName,
@@ -224,6 +225,40 @@ function createSupabaseCommunityStore(options) {
       isUserCreated: row.is_user_created ?? true,
       storageKey: row.storage_key || undefined,
     };
+  }
+
+  async function ensureSeedRows() {
+    const seedItems = readJsonFile(communityDataPath);
+    if (!Array.isArray(seedItems) || seedItems.length === 0) {
+      return;
+    }
+
+    const rows = seedItems.map((item) => ({
+      id: item.id,
+      title: item.title,
+      author: item.author,
+      image_url: item.image,
+      image_path: item.image.startsWith('/media/') ? null : item.image,
+      views: item.views ?? '0',
+      downloads: item.downloads ?? '0',
+      description: item.description || '',
+      gcode_file_name: item.gcodeFileName || null,
+      gcode_url: item.gcodeUrl || null,
+      gcode_path: null,
+      tdm_file_name: item.tdmFileName || null,
+      tdm_url: item.tdmUrl || null,
+      tdm_path: null,
+      is_user_created: Boolean(item.isUserCreated),
+      storage_key: item.storageKey || slugify(item.title) || null,
+    }));
+
+    const { error } = await supabase
+      .from('community_items')
+      .upsert(rows, { onConflict: 'id' });
+
+    if (error) {
+      throw error;
+    }
   }
 
   async function uploadDataUrlAsset(storageKey, dataUrl, providedFileName, folder) {
@@ -285,13 +320,28 @@ function createSupabaseCommunityStore(options) {
   return {
     mode: 'supabase',
     async listCommunityItems() {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('community_items')
         .select('*')
         .order('id', { ascending: false });
 
       if (error) {
         throw error;
+      }
+
+      if (!data || data.length === 0) {
+        await ensureSeedRows();
+        const seededResult = await supabase
+          .from('community_items')
+          .select('*')
+          .order('id', { ascending: false });
+
+        data = seededResult.data;
+        error = seededResult.error;
+
+        if (error) {
+          throw error;
+        }
       }
 
       return (data || []).map(mapRowToItem);
