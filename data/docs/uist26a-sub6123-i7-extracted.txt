@@ -1,0 +1,904 @@
+
+
+--- PAGE 1 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through
+3D-Printed Hook Morphologies
+Anonymous Author(s)
+Figure 1: V-Hook morphologies, workflow and Applications: (a) Four forms of hooks and printing processes. (b) Basic workfow
+presentation. (c) A series of application cases and prototypes. Scale Bar: 20mm.
+Abstract
+Vibration is a lightweight and widely available actuation source,
+yet existing vibration-driven locomotion systems often rely on
+specialized mechanisms, additional electronics, or extensive em-
+pirical tuning, making them difficult to reproduce, adapt, and inte-
+grate into everyday objects. To address this limitation, we present
+V-Hook, a morphology-driven locomotion design approach that
+encodes motion behavior through hook-shaped Morphologies fab-
+ricated by FDM 3D printing. By leveraging asymmetric contact
+and stick–slip interactions between the hooks and the supporting
+surface, V-Hook transforms a uniform vibration input into distin-
+guishable motion outputs. We systematically investigate how hook
+morphology, density, length, and vibration conditions influence mo-
+tion accuracy, stability, and load-bearing performance, and derive a
+morphology-to-motion design space from these results. Building on
+this foundation, we develop a design tool and online platform that
+support motion authoring and sharing for lightweight interactive
+objects, and validate the approach through a series of application
+prototypes. By reframing vibration-driven motion as a problem of
+hook morphology design, this work offers a new perspective for
+integrating motion capabilities into digitally fabricated interactive
+systems.
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+Conference acronym ’XX, Detroit, MI
+©2026 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 978-1-4503-XXXX-X/2026/11
+https://doi.org/XXXXXXX.XXXXXXX
+CCS Concepts
+•Human-centered computing → Interactive system and tools.
+Keywords
+Vibration-driven locomotion, Encoded morphology, 3D printing
+ACM Reference Format:
+Anonymous Author(s). 2026. V-Hook: Encoding Vibration-Driven loco-
+motion through 3D-Printed Hook Morphologies. InProceedings of Make
+sure to enter the correct conference title from your rights confirmation email
+(Conference acronym ’XX).ACM, New York, NY, USA, 12 pages. https:
+//doi.org/XXXXXXX.XXXXXXX
+1 Introduction
+Vibration is a lightweight and widely available actuation source [29,
+39, 45] commonly found in mobile devices [6, 45], interactive arti-
+facts [16], desktop tools [16, 31], and small robotic platforms [11, 34,
+40]. In human-computer interaction, vibration has long been used
+for haptic feedback [36–38] and notifications [1, 8, 15], but it also
+offers an appealing pathway for motion generation: objects can be
+driven without relying on wheels [14], joints [5], or complex trans-
+mission mechanisms [19, 24]. For this reason, and compared with
+systems based on gears [47], cables [23, 24], or pneumatics [3, 4, 44],
+vibration is particularly suitable for small-scale, low-cost interactive
+motion systems [31, 34, 45].
+However, existing vibration-driven locomotion systems typically
+achieve controllability through specialized mechanical designs [16],
+additional control electronics [16, 31], or extensive empirical tun-
+ing [20, 29]. As a result, motion behaviors are often tightly coupled
+to specific device structures, making them difficult to reproduce,
+transfer, or conveniently embed into everyday objects [7, 17, 25].
+This challenge has limited designers and makers from bringing
+
+--- PAGE 2 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+vibration-driven motion into a broader range of HCI scenarios. Mo-
+tivated by this challenge, we ask whether part of the control problem
+can be shifted upstream into the fabrication stage itself. More specif-
+ically, can low-cost 3D printing provide a low-complexity way of
+authoring motion for lightweight objects, so thatvibration-driven
+motion can be designed and controlled through structural
+encoding rather than through the later addition of complex
+control systems?
+To address this question, we presentV-Hook, a morphology-
+driven motion design approach that uses hook-shaped Morpholo-
+gies fabricated by FDM 3D printing to encode motion behavior.
+By leveraging asymmetric contact and stick–slip interactions be-
+tween the hook structures and the supporting surface, V-Hook
+transforms a uniform vibration input into distinguishable motion
+outputs. Based on this mechanism, we further use G-code control
+over extrusion amount and printing speed in FDM printing, to-
+gether with gravity, fabrication strategies, and post-processing, to
+construct four fundamental hook morphologies: full, tilted, half, and
+double hooks. We systematically investigate how hook morphology,
+along with density, length, and vibration conditions, influences mo-
+tion accuracy, stability, and load-bearing performance. From these
+results, and through further integration of printing strategies as well
+as modular composition and assembly, we derive a morphology-to-
+motion design space. To support broader accessibility, we develop a
+design tool and online platform that support motion authoring and
+sharing for lightweight interactive objects, and further demonstrate
+the potential of this approach for motion-based interaction through
+a series of interactive prototypes.
+By reframing vibration-driven motion as a problem of hook mor-
+phology design, this work offers a new perspective on integrating
+motion capabilities into digitally fabricated interactive systems.
+The contributions of this paper are as follows:
+• We propose a fabrication-oriented motion primitive that
+encodes controllable vibration-driven motion through 3D-
+printed hook Morphologie s, by establishing a systematic
+relationship between hook morphology, directional motion
+behavior, and the factors that influence it.
+• We develop a design tool and online platform that bridge
+morphology and motion, supporting its use as an attachable
+motion layer, a modular motion unit, and a motion design
+component for lightweight, shareable interactive objects.
+• Through a series of application prototypes, we demonstrate
+the usability and potential of this approach for motion inter-
+action.
+2 Related Work
+2.1 Vibration-driven Locomotion
+Vibration-driven locomotion is commonly realized through inter-
+nal vibration motors [34, 45], eccentric masses [29], piezoelectric
+elements [12], or external vibration platforms [ 39]. In these sys-
+tems, periodic excitation is applied to the structure as a whole [41],
+and is converted into displacement through interactions with the
+contact surface [27]. Such systems are attractive because they are
+lightweight [34], easy to package [ 31], and require relatively lit-
+tle mechanical assembly [45]. As a result, they have been widely
+explored in low-cost robots [34] and interactive devices [29, 31].
+Across robotics and human–computer interaction, vibration has
+been used to enable sliding [31], crawling [9], bristle-based loco-
+motion [13], and object movement [29, 45]. However, such systems
+often support only a limited range of motion behaviors and re-
+main difficult to control in a stable and practically usable manner.
+For example,CARDinalityrelies on complex electronic systems
+and a training process to learn usable motion,LayMoconstructs a
+differential-friction steering mechanism through a specially compli-
+ant mechanical structure, andRatchaircompensates for uncertainty
+in vibration-driven motion through learning and optimization algo-
+rithms [16, 29, 31]. Although these approaches improve controlla-
+bility, they also substantially raise the barrier for users to reproduce
+the system and extend it to richer motion patterns.
+V-Hook takes a different path. Instead of adding more layers of
+control, it introduces predictable directional bias at the levels of
+fabrication and hook morphologies. In doing so, it makes vibration-
+driven locomotion closer to a mechanism that can be directly de-
+signed, parameterized, and combined, while also broadening the
+range of motion behaviors that vibration can produce.
+2.2 Morphology and 3D Printing for Encoding
+Motion
+In HCI and robotic systems, morphology is increasingly being
+treated as an active medium for shaping behavior and motion [32],
+rather than merely a passive shell for carrying actuators [35] and
+control logic [30, 33, 44]. For example,McGeerproduces stable gaits
+through leg Morphology and weight distribution alone, without
+active actuation [26];Snake-Inspired Kirigami Skinuses kirigami
+structures to create frictional anisotropy and thereby generate di-
+rectional serpentine motion under uniform actuation [2];Capsular
+Microrobotemploys a helical structure to transform rotational mo-
+tion into linear propulsion [48]; andAgile Multimodal Microrobot
+uses passively deformable wheels to switch among rolling, crawl-
+ing, and climbing under a single drive mechanism [22]. Collectively,
+these works suggest that complex behavior need not rely entirely
+on fine-grained real-time control, but can instead be substantially
+preconfigured by morphology.
+With the rise of digital fabrication, and especially 3D printing,
+this idea of “encoding behavior in morphology” has become in-
+creasingly manufacturable in practice [17, 27, 42]. Morphology can
+now be controlled with high precision [27, 42, 43], structures can
+be rapidly iterated [7, 17], and behavior can therefore be more di-
+rectly shaped through form [24, 47]. For example,Kinergyuses the
+geometric design of 3D-printed springs to realize embedded kinetic
+energy storage and support a variety of self-actuated motion be-
+haviors [18];Cillliauses Digital Light Processing （DLP） printed
+microstructures to control surface friction and guide the directional
+movement of objects [28]. Yet in many such systems, the mapping
+from printed form to final motion is still mediated by additional
+structures, material properties, or assembly conditions, rather than
+being directly encoded in the contact Morphology of the printed
+object itself.
+V-Hook addresses this gap through a lighter-weight fabrication
+strategy. By printing hook-shaped structures using standard FDM
+3D printers and activating them through vibration, it produces
+diverse yet predictable motion behaviors. In this way, morphology
+
+--- PAGE 3 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through 3D-Printed Hook Morphologies Conference acronym ’XX, November 02–05, 2026, Detroit, MI
+itself becomes a direct medium linking parametric fabrication to
+motion behavior.
+2.3 Computer-Aided Design Tools for
+Customizable Motion Design
+As motion behavior is increasingly shaped by Morphology [ 10,
+17, 24], fabrication parameters [ 42, 43], and modular composi-
+tion [17, 47], designers not only need to understand the relation-
+ship between morphology and behavior, but also need tools that
+support the generation, comparison, and reuse of such relation-
+ships [7, 21, 25, 49]. Prior work has lowered the barrier to designing
+complex Morphologies [42], fabrication workflows [21, 46], and
+motion-generating mechanisms [24, 47] through design tools and
+parametric workflows, and has further demonstrated their use in
+everyday contexts [7, 25]. For instance,X-Stringsembeds tendon-
+driven mechanisms into 3D-printed structures so that actuation,
+deformation, and manipulation can be designed in an integrated
+manner [24];Robiotautomatically generates printable actuation
+mechanisms from target object behaviors [25]; andCompActfur-
+ther supports the design of interconnected compliant mechanisms
+around desired transmission goals, allowing structural generation
+to respond more directly to intended motion behavior [47]. How-
+ever, most existing tools focus on geometric modeling, fabrication
+organization, or particular classes of structure generation, and do
+not directly address the specific problem of encoding vibration-
+driven motion through morphology.
+Accordingly, this work further contributes a design tool and an
+accompanying online platform that turn the mapping among target
+motion, morphological parameters, and manufacturable structures
+into a low-barrier, operable, and reusable design workflow.
+3 V-Hook Overview
+3.1 Fabrication Pipeline
+To enable the rapid fabrication of V-Hook, we used a fused deposi-
+tion modeling (FDM) 3D printer, the Prusa Mk3S+, equipped with a
+standard 0.4 mm nozzle, ensuring the accessibility and reproducibil-
+ity of our method. After preliminary tests, and considering the
+balance between stiffness and elasticity, we selected PolyMax PLA
+as the printing material.
+By adjusting the extrusion amount and the printhead travel
+speed, the extruded filament deforms under gravity during sus-
+pended extrusion(fig. 2), forming a smooth and symmetricfull hook
+Morphology. By further shifting the relative positions of the start
+and end points, we can fabricatetilted hookstructures with direc-
+tional angles. To create ahalf hook, we introduce a supporting wall
+at the lowest point of deformation, allowing the extruded filament
+to naturally sag and attach to the wall; the wall is then removed after
+printing. Similarly, when three supporting walls of equal height are
+used, a uniformdouble hookmorphology can be formed. Multiple
+factors in this process can be parameterized, including the offset
+angle, as well as the spacing and height of the supporting walls.
+This substantially expands the diversity of hook morphologies, en-
+abling systematic variation in parameters such as length, density,
+angle, and proportion.
+3.2 Motion Principle
+Under vibration excitation, the hook structures interact with the
+contact surface through asymmetric friction and stick–slip effects,
+resulting in directional motion(fig. 2). Fortilted,full, anddouble
+hooks, the motion direction generally aligns with the bending di-
+rection of the hook. In contrast, thehalf hooktends to move in the
+opposite direction. Meanwhile, because thedouble hookstructure
+is mechanically similar to a spring, it exhibits greater elasticity dur-
+ing motion and shows a stronger upward motion tendency under
+vibration excitation.
+Figure 2: V-Hook Overview
+Figure 3: Experimental Setup and Basic Testing
+4 Parametric Testing and Evaluation
+4.1 Experimental Setup
+To further investigate how different hook morphologies and their
+parameters influence motion behavior under vibration excitation,
+we introduced a copper-coil vibration platform and used an SDVC-
+31 controller (fig. 3) to adjust the output voltage and output fre-
+quency. Based on our preliminary tests, the vibration behavior of
+the platform is jointly influenced by both output voltage and output
+frequency, and the two factors are not independent. At lower vibra-
+tion intensities, V-Hook primarily exhibits planar motion, whereas
+
+--- PAGE 4 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+Figure 4: Parametric Testing and Evaluation. Scale Bar: 20mm.
+
+--- PAGE 5 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through 3D-Printed Hook Morphologies Conference acronym ’XX, November 02–05, 2026, Detroit, MI
+at higher intensities, the prototype may jump off the platform. Con-
+sidering safety, user comfort, and variable control, we fixed the
+output voltage at 90 V and controlled the vibration intensity by
+varying only the output frequency. However, the output frequency
+does not equal the actual mechanical vibration frequency of the
+platform.
+To evaluate motion accuracy, we attached geometric grid paper
+to the vibration platform and recorded the start and end positions
+of the prototype. Based on the vertical travel distance 𝑑 and lateral
+offset 𝑙, we computed the deviation angle as 𝜃, where 𝑑 denotes
+the vertical travel distance and 𝑙 denotes the lateral offset. We then
+derived movement accuracy as
+Accuracy=
+
+1− 2
+𝜋 arctan
+ |𝑙|
+𝑑
+ 
+×100%.
+Finally, we evaluated the load-bearing capacity of V-Hook by
+progressively adding weights. Through pilot experiments, we also
+established a standard V-Hook prototype for subsequent baseline
+and parametric tests. The prototype uses afull hookmorphology,
+with a footprint of 48 mm × 48 mm, a10 × 10density configuration,
+100 hooks, a base thickness of 1.2 mm, a hook length of 20 mm, and
+a total mass of 4.6 g.
+4.2 Basic Testing
+With the output voltage fixed at 90 V, we measured the motion
+accuracy of the standard prototype (without additional load) under
+different output frequencies. The results show that as frequency
+increases, the motion accuracy first improves and then decreases.
+In other words, there exists a frequency, or a range of frequencies,
+at which the prototype can maintain motion accuracy above 90%,
+and in some cases even approach 100%, corresponding to nearly
+perfectly straight motion.
+By progressively increasing the load, we found that motion ac-
+curacy gradually decreased as the payload increased, and dropped
+markedly beyond 270 g. Noticeable deformation of the hook mor-
+phology was observed after 250 g, and beyond 270 g the hooks
+could no longer maintain their intended shape. Although the pro-
+totype was still capable of movement, its motion accuracy became
+extremely low. The tested 15 mm module（Best load-bearing perfor-
+mance） weighed only 3.8 g, yet was able to transport payloads of
+up to 270 g under vibration, corresponding to a payload-to-weight
+ratio of approximately71:1. In addition, compression tests showed
+that the structure could withstand forces of up to 140 N before being
+fully flattened, indicating both high dynamic payload capacity and
+strong mechanical robustness.
+4.3 Experiments, Findings and Evaluations
+4.3.1 Different Hook Morphologies.Under the same hook length
+and density, all four morphologies were able to maintain relatively
+high motion accuracy. However, thehalf hookperformed slightly
+worse than the other morphologies. We speculate that this is be-
+cause its greater structural degree of freedom makes it more prone
+to deformation in multiple directions under vibration, thereby intro-
+ducing larger motion error. By contrast, thedouble hook, due to its
+spring-like structural characteristics, exhibited stronger elasticity
+and a more pronounced upward motion tendency, while thefull
+hookshowed more prominent load-bearing performance.
+4.3.2 Different Densities.The density experiments show that as
+hook density increases, the load-bearing capacity of the structure
+improves significantly, while the frequency range associated with
+high motion accuracy gradually narrows, and the motion accuracy
+at the same frequency decreases. In practice, at lower densities,
+the local interaction between the hooks and the contact surface
+is clearer and more stable, with less off-axis disturbance, making
+directional motion easier to maintain. As density increases, struc-
+tural interference among hooks becomes stronger. Although the
+overall support capacity is improved, motion error is more likely
+to be introduced.
+4.3.3 Different Lengths.As hook length increases, motion accu-
+racy gradually improves within a certain range, and the frequency
+range over which high accuracy can be maintained shifts toward
+higher frequencies, while the load-bearing capacity gradually de-
+creases. However, this improvement does not continue indefinitely.
+When the hook length reaches 40 mm, with the base size fixed, the
+structural stiffness becomes insufficient, the hooks can no longer
+remain upright, support fails, and motion accuracy drops sharply.
+4.4 Summary
+Taken together, the parametric studies in this chapter validate the
+basic feasibility of V-Hook as a morphology-based locomotion prim-
+itive. The results(fig. 4) show that fundamental morphologies deter-
+mine motion modes, while parameter variations regulate motion
+performance. At the same time, different performance metrics are
+always linked by quantifiable trade-offs. V-Hook can achieve pre-
+dictable and tunable motion behavior under simple vibration input,
+and such tunability does not rely on complex electronic control,
+but instead emerges from a parameter space structured by contact
+Morphology and morphological design, in which motion accuracy,
+load-bearing capacity, structural stability, and printability must be
+balanced.
+5 Design Space
+5.1 Integrating Multiple Morphologies on a
+Single Base
+Our parametric studies revealed that different hook morphologies,
+densities, and lengths exhibit different sensitivities to vibration
+input. Building on this insight, we further explored the possibility
+of integrating multiple hook morphologies on a single base. By ad-
+justing the positions of supporting walls and the printing paths, we
+successfully fabricated multiple hook types on the same substrate.
+This all-in-one strategy allows a single V-Hook prototype to em-
+bed multiple motion responses within one structure. Under different
+vibration intensities, different hook morphologies can take on dom-
+inant roles during motion, thereby producing different movement
+behaviors without replacing the entire module. In this way, motion
+variation is no longer achieved only by switching between sepa-
+rate prototypes, but can also be encoded directly into a single base
+through spatially distributed hook configurations. This expands
+both the compactness and expressiveness of V-Hook, while sug-
+gesting a new direction for designing multi-behavior locomotion
+systems under shared vibration input.
+
+--- PAGE 6 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+Figure 5: Design space
+
+--- PAGE 7 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through 3D-Printed Hook Morphologies Conference acronym ’XX, November 02–05, 2026, Detroit, MI
+Figure 6: Design tool
+5.2 Modifying the Base: From 2D Motion to 3D
+Motion
+Within a safe and comfortable vibration range, V-Hook prototypes
+typically exhibit different forms of motion on a two-dimensional
+plane. To further expand their motion capabilities, we modified the
+base structure to shift the overall center of mass of the prototype.
+Under inertial effects, even at relatively low vibration intensities,
+V-Hook was able to extend its motion repertoire from planar 2D
+motion to a range of 3D motion behaviors.
+Rather than changing the hook structures themselves, this ap-
+proach expands motion possibilities by redesigning the relation-
+ship between the hook layer and the body above it. By introducing
+three-dimensional base Morphologies, tilted mass distributions, or
+elevated structures, the prototype can leverage the same vibration
+input to generate rolling, rocking, and lifting tendencies in addition
+to directional planar locomotion. This result suggests that V-Hook
+can support not only motion design at the contact layer, but also mo-
+tion transformation through body-level structural variation, further
+broadening the design space from surface locomotion to volumetric
+motion expression.
+5.3 Connecting Modules for Motion
+Composition
+To further support user creativity and expand the design space, we
+built on the tested single-unit morphologies and motion patterns to
+enable modular combination through hinges, adhesives, and other
+connection methods. Through such modular composition, users can
+construct richer combinations of motion and interaction patterns
+based on existing morphologies and behaviors.
+This modular strategy enables motion to be designed not only
+at the level of individual hook units, but also at the level of their
+relationships and assemblies. For example, different modules can
+be arranged to produce sequential, coupled, or competing motion
+behaviors, allowing a system to translate, rotate, bend, or reorient
+in more complex ways than a single unit alone. As a result, V-Hook
+becomes more than an isolated locomotion primitive: it also serves
+as a compositional building block for constructing richer motion
+repertoires. Such modularity opens up opportunities for scalable
+design exploration, where users can reuse, combine, and adapt
+existing motion modules to create new behaviors with relatively
+low fabrication overhead.
+6 Design Tool
+6.1 Software Tool
+To help users better understand the fabrication process of V-Hook,
+establish controllable and predictable mappings between morphol-
+ogy and motion, and support customized design, we developed a
+low-barrier software tool(fig. 6) based on Rhinoceros, Grasshopper,
+and its interface plugin Human UI.
+The tool packages complex fabrication and motion knowledge
+into an operational design workflow. Users can first select a prede-
+fined base or import a custom model and specify its bottom surface.
+After defining the object weight and hook type, the system auto-
+matically generates the corresponding parametric design interface.
+For different morphologies, the tool provides reasonable param-
+eter ranges related to vibration-driven motion, such as printable
+density ranges, hook lengths that balance stiffness and elasticity,
+and suitable angles and proportions for different motion patterns.
+After completing the design of a single unit, users can further cre-
+ate modular combinations within the software and preview the
+expected motion through animation. Finally, the tool outputs the
+final structural configuration and fabrication parameters to support
+subsequent printing and assembly.
+
+--- PAGE 8 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+Figure 7: Online platform
+In this way, the tool helps users more intuitively understand how
+different morphological choices influence final motion behavior,
+while lowering the barrier to customized motion design.
+6.2 Online Platform
+In addition to the local software tool, we further developed an
+online platform to support the sharing and dissemination of V-
+Hook design knowledge. For V-Hook, code is not only a fabrication
+description for generating different printed morphologies, but also
+an encoding of vibration-driven motion behavior.
+Based on GitHub Pages, we deployed a lightweight static web-
+site (fig. 7) that supports browsing, sharing, and reusing different
+morphology codes. On the platform, users can view different hook
+morphologies and parameter settings, their corresponding motion
+patterns and application examples, and further adapt existing de-
+signs through modification, combination, and extension. The plat-
+form aims to provide an accessible, comparable, and reusable online
+resource for building a broader community around V-Hook.
+7 Applications
+7.1 Turning Everyday Vibration into Visible
+Motion
+In everyday life, vibration is commonly used as functional feedback,
+while V-Hook transforms it into visible and understandable physical
+motion. As shown in Fig. 8a, for makers and designers working
+with 3D printing, V-Hook can be directly integrated into the bottom
+surface of printed objects, allowing the vibration generated by
+the printer itself to rapidly animate prototypes and thus connect
+fabrication with motion generation in a single workflow. As shown
+in Fig. 8b, when attached to a speaker, V-Hook can translate music
+vibrations into rhythmic and expressive movement, making abstract
+audio signals physically perceivable. As shown in Fig. 8c, when
+embedded into a phone case, V-Hook can also extend smartphone
+vibration into more spatially expressive behaviors, such as moving
+the phone closer during an incoming call or rotating during an
+alarm.
+Figure 8: Everyday Vibration: (a) 3D printing and rapid ver-
+ification of prototypes. (b) Music of different frequencies
+causes different states of motion. (c) Visualize the feedback
+of the vibration function of the mobile phone.
+7.2 Playful and Participatory Motion Systems
+V-Lego.We designed the V-Hook base as a modular component
+compatible with standard LEGO interfaces, allowing it to be directly
+connected to existing LEGO structures. By tapping the table or
+adding a motor, children can introduce vibration and immediately
+observe different motion behaviors from different Morphologies
+and assemblies. This turns static constructions into dynamic and
+playful systems with exploratory and educational potential (Fig. 9).
+Figure 9: V-Lego: (a) lego components with V-hooks. (b) As-
+sembly. (c) Tap the table to make it move. (d-f) Different
+motion modes. Scale Bar: 30mm.
+V-Curling.V-Hook enables different motion trajectories and
+strategy-like behaviors under the same actuation through parame-
+ter adjustment. Users can also modify surface friction by sweeping,
+influencing speed, path stability, and collision outcomes. In this way,
+curling becomes a perceivable and participatory vibration-driven
+interactive system (Fig. 10).
+Figure 10: V-Curling. (a) Simple components. (b) Altering
+friction affects the direction and speed of motion. (c) Motion
+and collision! Scale Bar: 30mm.
+
+--- PAGE 9 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through 3D-Printed Hook Morphologies Conference acronym ’XX, November 02–05, 2026, Detroit, MI
+7.3 As an Attach-On Motion Carrier
+V-Ho ok can also serve as an attach-on motion carrier for everyday
+service scenarios. For example, it can be integrated into the base of
+a monitoring camera, enabling lightweight directional movement
+for more flexible remote observation. It can also be attached to
+shared documents on meeting tables, allowing them to move or
+rotate across the surface for easier signing, viewing, and access by
+multiple participants. In this way, motion is no longer limited to
+specific objects themselves, but can be flexibly added to a wider
+range of everyday artifacts.
+Figure 11: As an Attach On Motion Carrier. (a) Enable the
+existing cameras to move freely. (b) Enable the files to move
+to enhance the efficiency of the meeting.
+7.4 Lightweight V-Robot
+Due to its lightweight actuation, high load-bearing capacity, and
+stable motion across different contact surfaces, V-Hook also shows
+promise for robotic applications. We developedV-Robot, which in-
+tegrates an ESP32 Bluetooth control board and a servo motor into
+a V-Hook structure. As shown in Fig. 12a, in agricultural scenar-
+ios, V-Robot can be remotely guided to target locations under low
+vibration intensity, while stronger vibration can assist in releas-
+ing carried seeds or fertilizer into the soil. As shown in Fig. 12b,
+in household scenarios, V-Robot can function as a small domestic
+robot that not only clears tabletop debris but also carries and trans-
+ports lightweight objects, such as fruit. These examples illustrate
+how V-Hook can extend from interactive objects to task-oriented
+robotic systems, offering a low-barrier and customizable approach
+to miniature robot design.
+Figure 12: Lightweight V-Robot: (a) Farmland robot: Re-
+motely control movement and seeding. (b) Small household
+robots: Carry and sweep objects
+8 Discussion and Future Work
+8.1 Morphology as a Design Variable
+V-Hook proposes that motion outcomes are not determined pri-
+marily by complex control, but are directly shaped by morpholog-
+ical parameters. The parametric studies further validate that the
+motion behavior of V-Hook can be systematically tuned, rather
+than remaining at the level of empirical trial and error. However,
+the current design space of V-Hook is still mainly built on macro-
+level morphological parameters that can clearly distinguish motion
+categories, while more fine-grained unit-level Morphologie s and
+printing parameters are reflected more as continuous adjustments
+to existing motion behaviors. Examples include the influence of
+extrusion amount and printing speed on hook thickness and cur-
+vature, the influence of different tilt angles (e.g., 30◦, 45◦, and 60◦)
+on directional bias and structural support, and proportion-related
+issues, such as where ahalf hookis truncated, the size ratio between
+the two hooks in adouble hook, and whether the structure can be
+extended into more continuous hooks.
+However, under the current experimental conditions, the motion-
+mode changes introduced by these parameters still show strong
+convergence overall. They more often affect the intensity, stabil-
+ity, and error distribution within the same class of motion behav-
+ior, rather than introducing fundamentally different new motion
+modes. Future work could further establish a higher-resolution
+morphology–motion mapping around these parameters, analyze
+how they affect dynamic metrics such as speed, trajectory stabil-
+ity, jumping height, and contact recovery capability, and further
+integrate this knowledge into the design tool.
+8.2 Accuracy, Stability, and Load-Bearing
+Capacity
+The baseline experiments show that V-Hook can achieve relatively
+high motion accuracy under simple vibration input and maintain
+stable performance across a relatively wide frequency range. For
+the standard prototype, when the output voltage was fixed at 90 V,
+motion accuracy remained above 90% over a certain frequency
+interval, and in some cases approached perfectly straight motion.
+This suggests that contact Morphology design can compensate,
+to some extent, for the inherent uncertainty of vibration-driven
+motion, thereby improving motion stability and predictability.
+In addition to motion accuracy, V-Hook also exhibits strong load-
+bearing capacity, which is closely related to the printing material. In
+the current work, we primarily focus on PLA. Its key advantage lies
+in the fact that the stiffness and elasticity of the hooks can be dy-
+namically shaped during fabrication through parameter adjustment.
+Experimental results show that, compared with TPU, PLA achieves
+higher motion accuracy and stronger load-bearing performance
+under the current prototype scale and vibration conditions, suggest-
+ing that higher stiffness helps maintain the stability of hook-based
+contact Morphology. At the same time, PLA is also more prone to
+brittle fracture or irreversible deformation during post-processing
+and long-term use, and its durability and recoverability are weaker
+than those of TPU. Although cyclic tests indicate that PLA proto-
+types can still maintain approximately 90% motion accuracy after
+around 1000 cycles of use, and only show a significant decline after
+
+--- PAGE 10 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+Figure 13: Different material
+around 1300 cycles, the material itself remains a key constraint on
+long-term system reliability.
+Future work could further improve system stability in three
+ways. First, structural reinforcement and hierarchical design could
+be introduced to improve morphological stability under high loads.
+Second, a wider range of 3D-printable materials, including TPU, en-
+gineering plastics, metals, or ceramics, could be explored to obtain
+more stable mechanical properties. Third, the fabrication process
+itself could be further optimized to reduce the influence of print-
+ing errors and post-processing deformation on the final contact
+Morphology.
+8.3 Vibration Input and Motion Boundaries
+The experiments in this work were primarily conducted on a vibra-
+tion platform, while in the application section we further demon-
+strated the possibility of other vibration sources such as speakers,
+3D printers, and external tapping. These explorations suggest that
+V-Hook has a certain degree of generality with respect to vibra-
+tion input, but its motion performance still strongly depends on
+the intensity, continuity, and coupling condition of the vibration
+source. In practice, small vibration motors or lightweight actuators
+often cannot provide sufficient driving force to fully activate the
+motion potential of V-Hook. Conversely, achieving more dramatic
+motion effects, such as obvious jumping, usually requires stronger
+vibration intensity, which may also introduce noticeable discomfort.
+Instantaneous excitation generated by forceful table tapping can
+likewise induce momentary jumps due to the lightweight structure
+of V-Hook. This suggests that its response is not limited to continu-
+ous vibration, but may also extend to impulsive excitation, offering
+a possible way to balance vibration input and practical application
+needs.
+Meanwhile, contact conditions constitute another important mo-
+tion boundary for V-Hook. Our experiments show that as long as
+stable surface contact can be established and effective asymmetric
+friction can be generated, different hook morphologies can gener-
+ally maintain relatively high motion accuracy. However, surface
+Figure 14: Different surface
+roughness significantly affects motion speed: in general, smoother
+surfaces tend to correspond to higher motion velocity. By contrast,
+in outdoor environments such as sand and water, the standard
+module (with a 20 mm hook length) performs substantially worse,
+because the structure tends to sink into granular media or float on
+the liquid surface, making it difficult to establish sufficient contact
+and friction. However, when the hook length is increased, the struc-
+ture can re-establish more effective contact and friction, and motion
+accuracy correspondingly recovers. This suggests that limitations
+introduced by the contact environment can, to some extent, still be
+mitigated through adjustments to morphological parameters.
+However, the present work still provides only limited investiga-
+tion of vibration input itself. For example, the relationship between
+controller output parameters and the actual mechanical amplitude
+and acceleration of the platform has not yet been systematically
+modeled. At the same time, our characterization of the morphology–
+motion relationship is still mainly focused on motion accuracy and
+motion mode, while more fine-grained dynamic metrics, such as ve-
+locity, acceleration, trajectory stability, and jumping height, remain
+underexplored. Future work could combine more refined experi-
+mental design, motion capture, and modeling methods to establish a
+more complete morphology–motion mapping and further improve
+the ability of the design tool to support target motion behaviors.
+9 Conclusion
+We presented V-Hook as a morphology-driven approach to vibration-
+driven locomotion design. Rather than relying on added control
+complexity, V-Hook shows that motion can be systematically shaped
+through hook morphology and parametric fabrication. Through
+evaluation, design space exploration, and application prototypes,
+V-Hook offers a new perspective for integrating motion capabilities
+into digitally fabricated interactive systems.
+
+--- PAGE 11 ---
+
+V-Hook: Encoding Vibration-Driven locomotion through 3D-Printed Hook Morphologies Conference acronym ’XX, November 02–05, 2026, Detroit, MI
+References
+[1] Arpit Bhatia, Dhruv Kundu, Suyash Agarwal, Varnika Kairon, and Aman Parnami.
+2021. Soma-noti: Delivering Notifications Through Under-clothing Wearables. In
+Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems.
+Association for Computing Machinery, New York, NY, USA, Article 221, 8 pages.
+doi:10.1145/3411764.3445123
+[2] Curtis Branyan, Juntian Liu, Robert E. Ritzmann, and Roger D. Quinn. 2020. Snake-
+Inspired Kirigami Skin for Lateral Undulation of a Soft Snake Robot.IEEE Robotics
+and Automation Letters5, 2 (2020), 1728–1735. doi:10.1109/LRA.2020.2969949
+[3] Anke Brocker, Jakob Strüver, Simon Voelker, and Jan Borchers. 2022. SoRoCAD:
+A Design Tool for the Building Blocks of Pneumatic Soft Robotics. InExtended
+Abstracts of the 2022 CHI Conference on Human Factors in Computing Systems
+(CHI EA ’22). Association for Computing Machinery, New York, NY, USA, Article
+330, 7 pages. doi:10.1145/3491101.3519770
+[4] Anke Brocker, Jakob Strüver, Simon Voelker, and Jan Borchers. 2022. SoRoCAD:
+A Design Tool for the Building Blocks of Pneumatic Soft Robotics. InExtended
+Abstracts of the 2022 CHI Conference on Human Factors in Computing Systems
+(CHI EA ’22). Association for Computing Machinery, New York, NY, USA, Article
+330, 7 pages. doi:10.1145/3491101.3519770
+[5] Hui Chai, Yibin Li, Rui Song, Guoteng Zhang, Qin Zhang, Song Liu, Jinmian Hou,
+Yaxian Xin, Ming Yuan, Guoxuan Zhang, and Zhiyuan Yang. 2022. A Survey of the
+Development of Quadruped Robots: Joint Configuration, Dynamic Locomotion
+Control Method and Mobile Manipulation Approach.Biomimetic Intelligence and
+Robotics2, 1 (2022), 100029. doi:10.1016/j.birob.2021.100029
+[6] Angela Chang and Conor O’Sullivan. 2005. Audio-haptic Feedback in Mobile
+Phones. InCHI ’05 Extended Abstracts on Human Factors in Computing Systems.
+ACM, 1264–1267. doi:10.1145/1056808.1056892
+[7] Xiang ’Anthony’ Chen, Jeeeun Kim, Jennifer Mankoff, Tovi Grossman, Stelian
+Coros, and Scott E. Hudson. 2016. Reprise: A Design Tool for Specifying, Gen-
+erating, and Customizing 3D Printable Adaptations on Everyday Objects. In
+Proceedings of the 29th Annual Symposium on User Interface Software and Technol-
+ogy (UIST ’16). ACM, 29–39. doi:10.1145/2984511.2984512
+[8] Patrizia Di Campli San Vito, Stephen Brewster, Frank Pollick, Simon Thompson,
+Lee Skrypchuk, and Alexandros Mouzakitis. 2020. Purring Wheel: Thermal
+and Vibrotactile Notifications on the Steering Wheel. InProceedings of the 2020
+International Conference on Multimodal Interaction. Association for Computing
+Machinery, New York, NY, USA, 461–469. doi:10.1145/3382507.3418825
+[9] Donghai Du, Hongliang Ren, Jie Tao, Wuquan Chen, Hongguang Wang, and
+Xuechao Chen. 2018. Experiments on Vibration-Driven Stick-Slip Locomo-
+tion.Mechanism and Machine Theory125 (2018), 247–258. doi:10.1016/j.
+mechmachtheory.2018.03.011
+[10] Cathy Mengying Fang, Jianzhe Gu, Lining Yao, and Chris Harrison. 2022. Elec-
+triPop: Low-Cost, Shape-Changing Displays Using Electrostatically Inflated My-
+lar Sheets. InProceedings of the 2022 CHI Conference on Human Factors in Comput-
+ing Systems (CHI ’22). ACM, Article 261, 15 pages. doi:10.1145/3491102.3501837
+[11] Hongbin Fang and K. W. Wang. 2017. Piezoelectric Vibration-Driven Locomotion
+Systems — Exploiting Resonance and Bistable Dynamics.Journal of Sound and
+Vibration391 (2017), 153–169. doi:10.1016/j.jsv.2016.12.009
+[12] Hongbin Fang and K. W. Wang. 2017. Piezoelectric Vibration-Driven Locomotion
+Systems — Exploiting Resonance and Bistable Dynamics.Journal of Sound and
+Vibration391 (2017), 153–169. doi:10.1016/j.jsv.2016.12.009
+[13] Edmundo Pozo Fortunić, Felix Becker, Klaus Zimmermann, and Francisco Cuellar.
+2017. Bristle-bots in Swarm Robotics – Approaches on Agent Development
+and Locomotion. In2017 IEEE International Conference on Advanced Intelligent
+Mechatronics (AIM). IEEE, 1424–1429. doi:10.1109/AIM.2017.8014218
+[14] Mathieu Le Goc, Lawrence H. Kim, Ali Parsaei, Jean-Daniel Fekete, Pierre Drag-
+icevic, and Sean Follmer. 2016. Zooids: Building Blocks for Swarm User Interfaces.
+InProceedings of the 29th Annual Symposium on User Interface Software and Tech-
+nology (UIST ’16). ACM, 97–109. doi:10.1145/2984511.2984547
+[15] John Brandon Graham-Knight, Jon Michael Robert Corbett, Patricia Lasserre,
+Hai-Ning Liang, and Khalad Hasan. 2020. Exploring Haptic Feedback for Com-
+mon Message Notification Between Intimate Couples with Smartwatches. In
+Proceedings of the 32nd Australian Conference on Human-Computer-Interaction.
+Association for Computing Machinery, New York, NY, USA, 245–252. doi:10.
+1145/3441000.3441012
+[16] Violet Yinuo Han, Amber Yinglei Chen, Mason Zadan, Jesse T. Gonzalez, Dinesh K.
+Patel, Wendy Fangwen Yu, Carmel Majidi, and Alexandra Ion. 2025. Transforming
+Everyday Objects into Dynamic Interfaces using Smart Flat-Foldable Structures.
+InProceedings of the 38th Annual ACM Symposium on User Interface Software and
+Technology (UIST ’25). ACM, Article 98, 15 pages. doi:10.1145/3746059.3747720
+[17] Liang He, Xia Su, Huaishu Peng, Jeffrey Ian Lipton, and Jon E. Froehlich. 2022.
+Kinergy: Creating 3D Printable Motion using Embedded Kinetic Energy. InPro-
+ceedings of the 35th Annual ACM Symposium on User Interface Software and
+Technology (UIST ’22). ACM, Article 69, 15 pages. doi:10.1145/3526113.3545636
+[18] Liang He, Xia Su, Huaishu Peng, Jeffrey Ian Lipton, and Jon E. Froehlich. 2022.
+Kinergy: Creating 3D Printable Motion using Embedded Kinetic Energy. InPro-
+ceedings of the 35th Annual ACM Symposium on User Interface Software and
+Technology (UIST ’22). ACM, Article 69, 15 pages. doi:10.1145/3526113.3545636
+[19] Edoardo Idà and Valentina Mattioni. 2022. Cable-Driven Parallel Robot Actuators:
+State of the Art and Novel Servo-Winch Concept.Actuators11, 10 (2022), 290.
+doi:10.3390/act11100290
+[20] Minseong Kim, Donghwan Kim, Daehee Lee, Jongwon Seo, Jeonghoon Han,
+Daejoong Kim, and Min Jun Kim. 2020. On the Forward and Backward Motion of
+Milli-Bristlebots.International Journal of Mechanical Sciences182 (2020), 105754.
+doi:10.1016/j.ijmecsci.2020.105754
+[21] Robert Kovacs, Lukas Rambold, Lukas Fritzsche, Dominik Meier, Jotaro
+Shigeyama, Shohei Katakura, Ran Zhang, and Patrick Baudisch. 2021. Trusscilla-
+tor: a System for Fabricating Human-Scale Human-Powered Oscillating Devices.
+InThe 34th Annual ACM Symposium on User Interface Software and Technology
+(UIST ’21). ACM, 1074–1088. doi:10.1145/3472749.3474807
+[22] Jacqueline Lai, Alice Potisatityuenyong, Yuzhen Lu, Pier Paolo Iacovetto, Jon M.
+O’Callaghan, and Mohammad Khalid Jawed. 2024. An Agile Multimodal Micro-
+robot with Architected Passively Morphing Wheels.Science Advances10, 51
+(2024), eadp1176. doi:10.1126/sciadv.adp1176
+[23] Jian Li, Sheldon Andrews, Krisztian G. Birkas, and Paul G. Kry. 2017. Task-based
+Design of Cable-driven Articulated Mechanisms. InProceedings of the 1st Annual
+ACM Symposium on Computational Fabrication (SCF ’17). ACM, Article 6, 12 pages.
+doi:10.1145/3083157.3083161
+[24] Jiaji Li, Shuyue Feng, Maxine Perroni-Scharf, Yujia Liu, Emily Guan, Guanyun
+Wang, and Stefanie Mueller. 2025. Xstrings: 3D Printing Cable-Driven Mechanism
+for Actuation, Deformation, and Manipulation. InProceedings of the 2025 CHI
+Conference on Human Factors in Computing Systems (CHI ’25). ACM, Article 6,
+17 pages. doi:10.1145/3706598.3714282
+[25] Jiahao Li, Jeeeun Kim, and Xiang ’Anthony’ Chen. 2019. Robiot: A Design Tool
+for Actuating Everyday Objects with Automatically Generated 3D Printable
+Mechanisms. InProceedings of the 32nd Annual ACM Symposium on User Interface
+Software and Technology (UIST ’19). ACM, 673–685. doi:10.1145/3332165.3347894
+[26] Tad McGeer. 1990. Passive Dynamic Walking.The International Journal of
+Robotics Research9, 2 (1990), 62–82. doi:10.1177/027836499000900206
+[27] Jifei Ou, Mélina Skouras, Nikolaos Vlavianos, Felix Heibeck, Chin-Yi Cheng,
+Jürgen Peters, and Hiroshi Ishii. 2016. Cilllia: 3D Printed Micro-Pillar Struc-
+tures for Surface Texture, Actuation and Sensing. InProceedings of the 2016 CHI
+Conference on Human Factors in Computing Systems (CHI ’16). ACM, 5753–5764.
+doi:10.1145/2858036.2858257
+[28] Jifei Ou, Mélina Skouras, Nikolaos Vlavianos, Felix Heibeck, Chin-Yi Cheng,
+Jürgen Peters, and Hiroshi Ishii. 2016. Cilllia: 3D Printed Micro-Pillar Struc-
+tures for Surface Texture, Actuation and Sensing. InProceedings of the 2016 CHI
+Conference on Human Factors in Computing Systems (CHI ’16). ACM, 5753–5764.
+doi:10.1145/2858036.2858257
+[29] Tetiana Parshakova, Minjoo Cho, Alvaro Cassinelli, and Daniel Saakes. 2016.
+Ratchair: Furniture Learns to Move Itself with Vibration. InACM SIGGRAPH
+2016 Emerging Technologies (SIGGRAPH ’16). ACM, Article 19, 2 pages. doi:10.
+1145/2929464.2929473
+[30] Majken Kirkegaard Rasmussen, Esben Warming Pedersen, Marianne Graves
+Petersen, and Kasper Hornbæk. 2012. Shape-Changing Interfaces: A Review of
+the Design Space and Open Research Questions. InProceedings of the SIGCHI
+Conference on Human Factors in Computing Systems (CHI ’12). ACM, 735–744.
+doi:10.1145/2207676.2207781
+[31] Aditya Retnanto, Emilie Faracci, Anup Sathya, Yukai Hung, and Ken Nakagaki.
+2024. CARDinality: Interactive Card-Shaped Robots with Locomotion and Haptics
+using Vibration. InProceedings of the 37th Annual ACM Symposium on User
+Interface Software and Technology (UIST ’24). ACM, Article 17, 14 pages. doi:10.
+1145/3654777.3676421
+[32] Anne Roudaut, Sylvain Subramanian, Denis Martinez Plasencia, and Sriram
+Subramanian. 2013. Morphees: Toward High “Shape Resolution” in Self-Actuated
+Flexible Mobile Devices. InProceedings of the SIGCHI Conference on Human Factors
+in Computing Systems (CHI ’13). ACM, 593–602. doi:10.1145/2470654.2470738
+[33] Anne Roudaut, Sylvain Subramanian, Denis Martinez Plasencia, and Sriram
+Subramanian. 2013. Morphees: Toward High “Shape Resolution” in Self-Actuated
+Flexible Mobile Devices. InProceedings of the SIGCHI Conference on Human Factors
+in Computing Systems (CHI ’13). ACM, 593–602. doi:10.1145/2470654.2470738
+[34] Michael Rubenstein, Christian Ahler, and Radhika Nagpal. 2012. Kilobot: A Low
+Cost Scalable Robot System for Collective Behaviors. In2012 IEEE International
+Conference on Robotics and Automation. IEEE, 3293–3298. doi:10.1109/ICRA.2012.
+6224638
+[35] Faisal Taher, John Vidler, and Jason Alexander. 2017. A Characterization of
+Actuation Techniques for Generating Movement in Shape-Changing Interfaces.
+International Journal of Human-Computer Interaction33, 5 (2017), 385–398. doi:10.
+1080/10447318.2016.1250372
+[36] Mihail Terenti, Maria Casado-Palacios, Monica Gori, and Radu-Daniel Vatavu.
+2024. What Is the User Experience of Eyes-Free Touch Input with Vibrotactile
+Feedback Decoupled from the Touchscreen?. InExtended Abstracts of the CHI
+Conference on Human Factors in Computing Systems. Association for Computing
+Machinery, New York, NY, USA, 1–8. doi:10.1145/3613905.3650804
+
+--- PAGE 12 ---
+
+Conference acronym ’XX, November 02–05, 2026, Detroit, MI Anon.
+[37] Mihail Terenti and Radu-Daniel Vatavu. 2022. Measuring the User Experience of
+Vibrotactile Feedback on the Finger, Wrist, and Forearm for Touch Input on Large
+Displays. InExtended Abstracts of the 2022 CHI Conference on Human Factors in
+Computing Systems. Association for Computing Machinery, New York, NY, USA,
+1–7. doi:10.1145/3491101.3519704
+[38] Peter Khoa Duc Tran, Purna Valli Anusha Gadepalli, Jaeyeon Lee, and
+Aditya Shekhar Nittala. 2023. Augmenting On-Body Touch Input with Tactile
+Feedback Through Fingernail Haptics. InProceedings of the 2023 CHI Conference
+on Human Factors in Computing Systems. Association for Computing Machinery,
+New York, NY, USA, Article 79, 13 pages. doi:10.1145/3544548.3581473
+[39] Kiryu Tsujita, Takatoshi Yoshida, Kohei Kobayashi, Nobuhisa Hanamitsu,
+Kanghong Zhong, Arata Horie, and Kouta Minamizawa. 2025. HaptoRoom:
+Designing Spatial and Reconfigurable Haptic Experience using Vibrotactile Floor
+Interface. InProceedings of the Nineteenth International Conference on Tangi-
+ble, Embedded, and Embodied Interaction (TEI ’25). ACM, Article 5, 11 pages.
+doi:10.1145/3689050.3704939
+[40] Panagiotis Vartholomeos, Nikolaos Psarakis, and Evangelos Papadopoulos. 2013.
+Analysis and Motion Control of a Centrifugal-Force Microrobotic Platform.IEEE
+Transactions on Automation Science and Engineering10, 3 (2013), 545–553. doi:10.
+1109/TASE.2013.2248083
+[41] Panagiotis Vartholomeos, Nikolaos Psarakis, and Evangelos Papadopoulos. 2013.
+Analysis and Motion Control of a Centrifugal-Force Microrobotic Platform.IEEE
+Transactions on Automation Science and Engineering10, 3 (2013), 545–553. doi:10.
+1109/TASE.2013.2248083
+[42] Guanyun Wang, Junzhe Ji, Yunkai Xu, Lei Ren, Xiaoyang Wu, Chunyuan Zheng,
+Xiaojing Zhou, Xin Tang, Boyu Feng, Lingyun Sun, Ye Tao, and Jiaji Li. 2024.
+X-Hair: 3D Printing Hair-Like Structures with Multi-Form, Multi-Property,
+and Multi-Function. InProceedings of the 37th Annual ACM Symposium on
+User Interface Software and Technology (UIST ’24). ACM, Article 65, 14 pages.
+doi:10.1145/3654777.3676360
+[43] Guanyun Wang, Fang Qin, Haolin Liu, Ye Tao, Yang Zhang, Yongjie Jessica Zhang,
+and Lining Yao. 2020. MorphingCircuit: An Integrated Design, Simulation, and
+Fabrication Workflow for Self-Morphing Electronics.Proceedings of the ACM on
+Interactive, Mobile, Wearable and Ubiquitous Technologies4, 4, Article 157 (2020),
+26 pages. doi:10.1145/3432232
+[44] Guanyun Wang, Chenda Zheng, Yanbo Fu, Kuangqi Zhu, Fuyi Lai, Likang Zhang,
+Mengyang Li, Xiaoyang Wu, Muyi Ren, Yanpei Zheng, Boyi Lian, Kexin Zhang,
+Qi Wang, Cheng Yao, Shijian Luo, Fangtian Ying, Lingyun Sun, and Ye Tao. 2024.
+KiPneu: Designing a Constructive Pneumatic Platform for Biomimicry Learning
+in STEAM Education. InProceedings of the 2024 ACM Designing Interactive Systems
+Conference (DIS ’24). ACM, 441–458. doi:10.1145/3643834.3661828
+[45] Shota Yamanaka and Homei Miyashita. 2014. Vibkinesis: Notification by Direct
+Tap and “Dying Message” Using Vibronic Movement Controllable Smartphones.
+InProceedings of the 27th Annual ACM Symposium on User Interface Software and
+Technology (UIST ’14). ACM, 535–540. doi:10.1145/2642918.2647365
+[46] Zeyu Yan, Jiasheng Li, Zining Zhang, and Huaishu Peng. 2024. SolderlessPCB:
+Reusing Electronic Components in PCB Prototyping through Detachable 3D
+Printed Housings. InProceedings of the 2024 CHI Conference on Human Factors in
+Computing Systems (CHI ’24). ACM, Article 345, 17 pages. doi:10.1145/3613904.
+3642765
+[47] Humphrey Yang, I-Chao Shen, Nikolas Martelaro, Bo Zhu, Haoran Xie, Takeo
+Igarashi, and Lining Yao. 2025. CompAct: Designing Interconnected Compliant
+Mechanisms with Targeted Actuation Transmissions. InProceedings of the 2025
+CHI Conference on Human Factors in Computing Systems (CHI ’25). ACM, Article
+1, 19 pages. doi:10.1145/3706598.3714307
+[48] Sehyuk Yim and Doyoung Jeon. 2009. Capsular Microrobot Using a Directional
+Friction Spiral. In2009 IEEE International Conference on Robotics and Automation.
+IEEE, 4432–4437. doi:10.1109/ROBOT.2009.5152341
+[49] Junyi Zhu, Yunyi Zhu, Jiaming Cui, Leon Cheng, Jackson C. Snowden, Mark
+Chounlakone, Michael Wessely, and Stefanie Mueller. 2020. MorphSensor: A 3D
+Electronic Design Tool for Reforming Sensor Modules. InProceedings of the 33rd
+Annual ACM Symposium on User Interface Software and Technology (UIST ’20).
+ACM, 541–553. doi:10.1145/3379337.3415898

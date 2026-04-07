@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#eff6ff" />
+  <g fill="#1d4ed8" opacity="0.9">
+    <circle cx="220" cy="210" r="72" />
+    <circle cx="500" cy="340" r="88" />
+    <circle cx="860" cy="250" r="110" />
+    <circle cx="740" cy="560" r="84" />
+    <circle cx="330" cy="580" r="96" />
+  </g>
+  <text x="110" y="120" fill="#0f172a" font-size="56" font-family="Georgia, serif">Design Space</text>
+  <text x="112" y="170" fill="#334155" font-size="26" font-family="Arial, sans-serif">Multiple hook morphologies can be combined on one base.</text>
+</svg>

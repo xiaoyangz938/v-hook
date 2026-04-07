@@ -1,0 +1,5 @@
+{
+  "name": "V-Hook Website",
+  "description": "",
+  "requestFramePermissions": ["display-capture"]
+}

@@ -1,0 +1,17 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+*.err
+.env*
+!.env.example
+server.stop
+storage/recordings/
+build.log
+build.err
+dev.log
+dev.err
+server.log
+server.err

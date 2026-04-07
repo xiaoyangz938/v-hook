@@ -1,0 +1,8 @@
+; Sample V-lego G-code
+G21
+G90
+M82
+G28
+G1 Z0.2 F1200
+G1 X20 Y20 F3000
+G1 X80 Y20 E1.2

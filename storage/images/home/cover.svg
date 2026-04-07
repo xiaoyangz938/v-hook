@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <circle cx="1280" cy="180" r="180" fill="#60a5fa" opacity="0.18" />
+  <circle cx="260" cy="740" r="240" fill="#93c5fd" opacity="0.15" />
+  <text x="120" y="360" fill="#ffffff" font-size="118" font-family="Georgia, serif">V-Hook</text>
+  <text x="126" y="438" fill="#dbeafe" font-size="28" font-family="Arial, sans-serif">Encoding controllable vibration-driven locomotion</text>
+</svg>
