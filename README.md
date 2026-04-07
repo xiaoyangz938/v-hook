@@ -41,6 +41,8 @@ GitHub is the right place to host the code, but not the running website by itsel
 3. Connect the repo to Render
 4. Deploy using the included [render.yaml](D:\Augusta\Desktop\hook\v-hook-website (1)\render.yaml)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/xiaoyangz938/v-hook)
+
 ### Why This Setup Works
 
 - `npm start` runs the Express server from [server/index.mjs](D:\Augusta\Desktop\hook\v-hook-website (1)\server\index.mjs)

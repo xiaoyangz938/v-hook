@@ -4,6 +4,8 @@ services:
     runtime: node
     buildCommand: npm install && npm run build
     startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
         value: 20
