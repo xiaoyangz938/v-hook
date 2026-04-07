@@ -34,6 +34,18 @@ function parseDataUrl(dataUrl) {
   };
 }
 
+function normalizeUploadedFile(file, fallbackMimeType) {
+  if (!file) {
+    return null;
+  }
+
+  return {
+    mimeType: file.mimetype || fallbackMimeType || 'application/octet-stream',
+    buffer: file.buffer,
+    originalName: file.originalname,
+  };
+}
+
 function extensionFromMimeType(mimeType) {
   if (mimeType === 'image/png') return 'png';
   if (mimeType === 'image/jpeg') return 'jpg';
@@ -50,11 +62,12 @@ function createLocalCommunityStore(options) {
     communityDownloadsRoot,
   } = options;
 
-  function saveDataUrlFile(targetDir, preferredBaseName, dataUrl, fallbackExtension) {
+  function saveBufferFile(targetDir, preferredBaseName, fileLike, fallbackExtension) {
     ensureDirectory(targetDir);
-    const { mimeType, buffer } = parseDataUrl(dataUrl);
+    const { mimeType, buffer, originalName } = fileLike;
     const extension = fallbackExtension || extensionFromMimeType(mimeType);
-    const filename = `${preferredBaseName}.${extension}`;
+    const explicitFileName = originalName?.trim();
+    const filename = explicitFileName || `${preferredBaseName}.${extension}`;
     const filePath = path.join(targetDir, filename);
     fs.writeFileSync(filePath, buffer);
     return { filename, filePath };
@@ -72,10 +85,22 @@ function createLocalCommunityStore(options) {
       const slug = slugify(title) || `community-${Date.now()}`;
       const id = Date.now();
       const items = readJsonFile(communityDataPath);
+      const coverImageFile = payload.coverImageFile
+        || (payload.coverImageDataUrl
+          ? { ...parseDataUrl(payload.coverImageDataUrl), originalName: payload.coverImageFileName }
+          : null);
+      const gcodeFile = payload.gcodeFile
+        || (payload.gcodeDataUrl
+          ? { ...parseDataUrl(payload.gcodeDataUrl), originalName: payload.gcodeFileName }
+          : null);
+      const tdmFile = payload.tdmFile
+        || (payload.tdmDataUrl
+          ? { ...parseDataUrl(payload.tdmDataUrl), originalName: payload.tdmFileName }
+          : null);
 
       let imageUrl = '/media/images/uploaded/home/cover.png';
-      if (payload.coverImageDataUrl) {
-        const coverFile = saveDataUrlFile(uploadedCommunityImagesRoot, slug, payload.coverImageDataUrl);
+      if (coverImageFile) {
+        const coverFile = saveBufferFile(uploadedCommunityImagesRoot, slug, coverImageFile);
         imageUrl = `/media/images/uploaded/community/${coverFile.filename}`;
       }
 
@@ -87,16 +112,16 @@ function createLocalCommunityStore(options) {
       const itemDownloadDir = path.join(communityDownloadsRoot, slug);
       ensureDirectory(itemDownloadDir);
 
-      if (payload.gcodeDataUrl && payload.gcodeFileName) {
-        const gcodeBuffer = parseDataUrl(payload.gcodeDataUrl).buffer;
-        gcodeFileName = payload.gcodeFileName;
+      if (gcodeFile) {
+        const gcodeBuffer = gcodeFile.buffer;
+        gcodeFileName = gcodeFile.originalName || payload.gcodeFileName || `${slug}.gcode`;
         fs.writeFileSync(path.join(itemDownloadDir, gcodeFileName), gcodeBuffer);
         gcodeUrl = `/media/downloads/community/${slug}/${encodeURIComponent(gcodeFileName)}`;
       }
 
-      if (payload.tdmDataUrl && payload.tdmFileName) {
-        const tdmBuffer = parseDataUrl(payload.tdmDataUrl).buffer;
-        tdmFileName = payload.tdmFileName;
+      if (tdmFile) {
+        const tdmBuffer = tdmFile.buffer;
+        tdmFileName = tdmFile.originalName || payload.tdmFileName || `${slug}.3dm`;
         fs.writeFileSync(path.join(itemDownloadDir, tdmFileName), tdmBuffer);
         tdmUrl = `/media/downloads/community/${slug}/${encodeURIComponent(tdmFileName)}`;
       }
@@ -229,6 +254,34 @@ function createSupabaseCommunityStore(options) {
     };
   }
 
+  async function uploadBufferAsset(storageKey, fileLike, folder) {
+    if (!fileLike) {
+      return { fileName: undefined, url: undefined, path: undefined };
+    }
+
+    const { mimeType, buffer, originalName } = fileLike;
+    const parsedExtension = extensionFromMimeType(mimeType);
+    const rawExtension = path.extname(originalName || '').replace('.', '').toLowerCase();
+    const extension = rawExtension || parsedExtension;
+    const fileName = originalName || `${folder}-${storageKey}.${extension}`;
+    const assetPath = `${folder}/${storageKey}/${fileName}`;
+
+    const { error } = await supabase.storage.from(supabaseBucketName).upload(assetPath, buffer, {
+      contentType: mimeType,
+      upsert: true,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      fileName,
+      url: publicUrlFor(assetPath),
+      path: assetPath,
+    };
+  }
+
   return {
     mode: 'supabase',
     async listCommunityItems() {
@@ -249,17 +302,29 @@ function createSupabaseCommunityStore(options) {
       const description = (payload.description || '').trim();
       const storageKey = slugify(title) || `community-${Date.now()}`;
       const id = Date.now();
+      const coverImageFile = payload.coverImageFile
+        || (payload.coverImageDataUrl
+          ? { ...parseDataUrl(payload.coverImageDataUrl), originalName: payload.coverImageFileName }
+          : null);
+      const gcodeFile = payload.gcodeFile
+        || (payload.gcodeDataUrl
+          ? { ...parseDataUrl(payload.gcodeDataUrl), originalName: payload.gcodeFileName }
+          : null);
+      const tdmFile = payload.tdmFile
+        || (payload.tdmDataUrl
+          ? { ...parseDataUrl(payload.tdmDataUrl), originalName: payload.tdmFileName }
+          : null);
 
-      const imageAsset = payload.coverImageDataUrl
-        ? await uploadDataUrlAsset(storageKey, payload.coverImageDataUrl, payload.coverImageFileName, 'images')
+      const imageAsset = coverImageFile
+        ? await uploadBufferAsset(storageKey, coverImageFile, 'images')
         : { fileName: undefined, url: '/media/images/uploaded/home/cover.png', path: undefined };
 
-      const gcodeAsset = payload.gcodeDataUrl
-        ? await uploadDataUrlAsset(storageKey, payload.gcodeDataUrl, payload.gcodeFileName, 'downloads')
+      const gcodeAsset = gcodeFile
+        ? await uploadBufferAsset(storageKey, gcodeFile, 'downloads')
         : { fileName: undefined, url: undefined, path: undefined };
 
-      const tdmAsset = payload.tdmDataUrl
-        ? await uploadDataUrlAsset(storageKey, payload.tdmDataUrl, payload.tdmFileName, 'downloads')
+      const tdmAsset = tdmFile
+        ? await uploadBufferAsset(storageKey, tdmFile, 'downloads')
         : { fileName: undefined, url: undefined, path: undefined };
 
       const row = {

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
+import multer from 'multer';
 import { createCommunityStore } from './communityStore.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +59,12 @@ const adminPassword = process.env.VHOOK_ADMIN_PASSWORD || '';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseBucketName = process.env.SUPABASE_STORAGE_BUCKET || 'community-assets';
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 25 * 1024 * 1024,
+  },
+});
 
 function ensureDirectory(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -201,19 +208,33 @@ app.get('/api/community', async (_req, res) => {
   }
 });
 
-app.post('/api/community', async (req, res) => {
+app.post(
+  '/api/community',
+  upload.fields([
+    { name: 'coverImage', maxCount: 1 },
+    { name: 'gcodeFile', maxCount: 1 },
+    { name: 'tdmFile', maxCount: 1 },
+  ]),
+  async (req, res) => {
   try {
     if (!publicUploadsEnabled || !isAdminRequest(req)) {
       res.status(403).json({ error: 'Only administrators can upload community items' });
       return;
     }
 
-    const item = await communityStore.createCommunityItem(req.body);
+      const files = req.files || {};
+      const item = await communityStore.createCommunityItem({
+        ...req.body,
+        coverImageFile: files.coverImage?.[0],
+        gcodeFile: files.gcodeFile?.[0],
+        tdmFile: files.tdmFile?.[0],
+      });
     res.status(201).json({ item });
   } catch (error) {
     res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to create community item' });
   }
-});
+  }
+);
 
 app.delete('/api/community/:id', async (req, res) => {
   try {

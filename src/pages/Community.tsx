@@ -42,14 +42,6 @@ export default function Community() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const readFileAsDataUrl = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-      reader.readAsDataURL(file);
-    });
-
   useEffect(() => {
     const storedPassword = window.localStorage.getItem('vhook-admin-password');
     if (storedPassword) {
@@ -148,25 +140,29 @@ export default function Community() {
 
       setIsSubmitting(true);
     try {
-      const payload = {
-        title,
-        author,
-        description,
-        coverImageDataUrl: coverImageFile ? await readFileAsDataUrl(coverImageFile) : undefined,
-        coverImageFileName: coverImageFile?.name,
-        gcodeDataUrl: gcodeFile ? await readFileAsDataUrl(gcodeFile) : undefined,
-        gcodeFileName: gcodeFile?.name,
-        tdmDataUrl: tdmFile ? await readFileAsDataUrl(tdmFile) : undefined,
-        tdmFileName: tdmFile?.name,
-      };
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('author', author);
+      formData.append('description', description);
+
+      if (coverImageFile) {
+        formData.append('coverImage', coverImageFile);
+      }
+
+      if (gcodeFile) {
+        formData.append('gcodeFile', gcodeFile);
+      }
+
+      if (tdmFile) {
+        formData.append('tdmFile', tdmFile);
+      }
 
       const response = await fetch('/api/community', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'x-vhook-admin-password': adminPassword,
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       if (!response.ok) {
