@@ -47,9 +47,33 @@ GitHub is the right place to host the code, but not the running website by itsel
 
 - `npm start` runs the Express server from [server/index.mjs](D:\Augusta\Desktop\hook\v-hook-website (1)\server\index.mjs)
 - the frontend is served from the built `dist` folder
-- `VHOOK_RUNTIME_ROOT=/var/data/v-hook` moves writable data outside the code directory
-- uploaded files and JSON data can survive restarts when Render attaches the persistent disk
+- community data can run in two modes:
+  - local file mode for local development
+  - Supabase mode for free cloud persistence
 
-### Important Note
+### Free Deployment With Supabase
 
-If you deploy to a platform without persistent storage, community uploads and edited data may disappear after a restart or redeploy.
+For a free public deployment, use:
+
+- Render free web service
+- Supabase free database and storage bucket
+
+The server will automatically switch to Supabase when these environment variables are set:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_STORAGE_BUCKET`
+
+Create the `community_items` table with:
+
+- [supabase/schema.sql](D:\Augusta\Desktop\hook\v-hook-website (1)\supabase\schema.sql)
+
+Then create a public Storage bucket, usually named `community-assets`.
+
+### Public Site Safety
+
+The public site keeps uploads disabled by default through:
+
+- `VHOOK_ENABLE_PUBLIC_UPLOADS=false`
+
+That keeps the open-source site publicly viewable while preventing strangers from changing community data until you intentionally turn uploads on later.

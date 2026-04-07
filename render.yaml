@@ -2,6 +2,7 @@ services:
   - type: web
     name: v-hook
     runtime: node
+    plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
@@ -9,11 +10,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
-      - key: VHOOK_RUNTIME_ROOT
-        value: /var/data/v-hook
       - key: VHOOK_ENABLE_PUBLIC_UPLOADS
         value: false
-    disks:
-      - name: v-hook-data
-        mountPath: /var/data/v-hook
-        sizeGB: 5

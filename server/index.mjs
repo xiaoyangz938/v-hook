@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
+import { createCommunityStore } from './communityStore.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +54,9 @@ const ffmpegCandidates = [
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const publicUploadsEnabled = process.env.VHOOK_ENABLE_PUBLIC_UPLOADS === 'true';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseBucketName = process.env.SUPABASE_STORAGE_BUCKET || 'community-assets';
 
 function ensureDirectory(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -129,16 +133,6 @@ function extensionFromMimeType(mimeType) {
   return 'bin';
 }
 
-function saveDataUrlFile(targetDir, preferredBaseName, dataUrl, fallbackExtension) {
-  ensureDirectory(targetDir);
-  const { mimeType, buffer } = parseDataUrl(dataUrl);
-  const extension = fallbackExtension || extensionFromMimeType(mimeType);
-  const filename = `${preferredBaseName}.${extension}`;
-  const filePath = path.join(targetDir, filename);
-  fs.writeFileSync(filePath, buffer);
-  return { filename, filePath };
-}
-
 ensureDirectory(storageRoot);
 ensureDirectory(dataRoot);
 ensureDirectory(docsRoot);
@@ -150,6 +144,15 @@ ensureSeededDirectory(seedDataRoot, dataRoot);
 ensureSeededFile(path.join(seedDataRoot, 'community-items.json'), communityDataPath);
 ensureSeededFile(path.join(seedDataRoot, 'docs', 'v-hook.md'), docsMarkdownPath);
 
+const communityStore = createCommunityStore({
+  communityDataPath,
+  uploadedCommunityImagesRoot,
+  communityDownloadsRoot,
+  supabaseUrl,
+  supabaseServiceRoleKey,
+  supabaseBucketName,
+});
+
 app.use(express.json({ limit: '100mb' }));
 app.use('/media', express.static(storageRoot));
 
@@ -160,81 +163,34 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/config', (_req, res) => {
   res.json({
     publicUploadsEnabled,
+    storageMode: communityStore.mode,
   });
 });
 
-app.get('/api/community', (_req, res) => {
-  const items = readJsonFile(communityDataPath);
-  res.json({ items });
+app.get('/api/community', async (_req, res) => {
+  try {
+    const items = await communityStore.listCommunityItems();
+    res.json({ items });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to load community items' });
+  }
 });
 
-app.post('/api/community', (req, res) => {
+app.post('/api/community', async (req, res) => {
   try {
     if (!publicUploadsEnabled) {
       res.status(403).json({ error: 'Public uploads are disabled on this deployment' });
       return;
     }
 
-    const payload = req.body;
-    const title = (payload.title || '').trim() || 'New V-Hook Creation';
-    const author = (payload.author || '').trim() || 'You';
-    const description = (payload.description || '').trim();
-    const slug = slugify(title) || `community-${Date.now()}`;
-    const id = Date.now();
-    const items = readJsonFile(communityDataPath);
-
-    let imageUrl = '/media/images/uploaded/home/cover.png';
-    if (payload.coverImageDataUrl) {
-      const coverFile = saveDataUrlFile(uploadedCommunityImagesRoot, slug, payload.coverImageDataUrl);
-      imageUrl = `/media/images/uploaded/community/${coverFile.filename}`;
-    }
-
-    let gcodeFileName;
-    let gcodeUrl;
-    let tdmFileName;
-    let tdmUrl;
-
-    const itemDownloadDir = path.join(communityDownloadsRoot, slug);
-    ensureDirectory(itemDownloadDir);
-
-    if (payload.gcodeDataUrl && payload.gcodeFileName) {
-      const gcodeBuffer = parseDataUrl(payload.gcodeDataUrl).buffer;
-      gcodeFileName = payload.gcodeFileName;
-      fs.writeFileSync(path.join(itemDownloadDir, gcodeFileName), gcodeBuffer);
-      gcodeUrl = `/media/downloads/community/${slug}/${encodeURIComponent(gcodeFileName)}`;
-    }
-
-    if (payload.tdmDataUrl && payload.tdmFileName) {
-      const tdmBuffer = parseDataUrl(payload.tdmDataUrl).buffer;
-      tdmFileName = payload.tdmFileName;
-      fs.writeFileSync(path.join(itemDownloadDir, tdmFileName), tdmBuffer);
-      tdmUrl = `/media/downloads/community/${slug}/${encodeURIComponent(tdmFileName)}`;
-    }
-
-    const item = {
-      id,
-      title,
-      author,
-      image: imageUrl,
-      views: '0',
-      downloads: '0',
-      description,
-      gcodeFileName,
-      gcodeUrl,
-      tdmFileName,
-      tdmUrl,
-      isUserCreated: true,
-      storageKey: slug,
-    };
-
-    writeJsonFile(communityDataPath, [item, ...items]);
+    const item = await communityStore.createCommunityItem(req.body);
     res.status(201).json({ item });
   } catch (error) {
     res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to create community item' });
   }
 });
 
-app.delete('/api/community/:id', (req, res) => {
+app.delete('/api/community/:id', async (req, res) => {
   try {
     if (!publicUploadsEnabled) {
       res.status(403).json({ error: 'Public deletion is disabled on this deployment' });
@@ -242,45 +198,11 @@ app.delete('/api/community/:id', (req, res) => {
     }
 
     const id = Number(req.params.id);
-    const items = readJsonFile(communityDataPath);
-    const item = items.find((entry) => entry.id === id);
-
-    if (!item) {
-      res.status(404).json({ error: 'Community item not found' });
-      return;
-    }
-
-    const isDeletable = item.isUserCreated || item.author === 'You';
-    if (!isDeletable) {
-      res.status(403).json({ error: 'Only your uploaded items can be deleted' });
-      return;
-    }
-
-    writeJsonFile(
-      communityDataPath,
-      items.filter((entry) => entry.id !== id)
-    );
-
-    const storageKey = item.storageKey || slugify(item.title) || `${item.id}`;
-    const imageFileName = item.image.startsWith('/media/images/uploaded/community/')
-      ? decodeURIComponent(item.image.replace('/media/images/uploaded/community/', ''))
-      : null;
-
-    if (imageFileName) {
-      const imagePath = path.join(uploadedCommunityImagesRoot, imageFileName);
-      if (fs.existsSync(imagePath)) {
-        fs.rmSync(imagePath, { force: true });
-      }
-    }
-
-    const downloadDir = path.join(communityDownloadsRoot, storageKey);
-    if (fs.existsSync(downloadDir)) {
-      fs.rmSync(downloadDir, { recursive: true, force: true });
-    }
-
+    await communityStore.deleteCommunityItem(id);
     res.json({ ok: true, deletedId: id });
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : 'Failed to delete community item' });
+    const statusCode = typeof error === 'object' && error && 'statusCode' in error ? error.statusCode : 400;
+    res.status(statusCode).json({ error: error instanceof Error ? error.message : 'Failed to delete community item' });
   }
 });
 
