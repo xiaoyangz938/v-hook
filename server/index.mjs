@@ -54,6 +54,7 @@ const ffmpegCandidates = [
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const publicUploadsEnabled = process.env.VHOOK_ENABLE_PUBLIC_UPLOADS === 'true';
+const adminPassword = process.env.VHOOK_ADMIN_PASSWORD || '';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabaseBucketName = process.env.SUPABASE_STORAGE_BUCKET || 'community-assets';
@@ -133,6 +134,15 @@ function extensionFromMimeType(mimeType) {
   return 'bin';
 }
 
+function isAdminRequest(req) {
+  if (!adminPassword) {
+    return false;
+  }
+
+  const headerValue = req.get('x-vhook-admin-password');
+  return headerValue === adminPassword;
+}
+
 ensureDirectory(storageRoot);
 ensureDirectory(dataRoot);
 ensureDirectory(docsRoot);
@@ -164,7 +174,22 @@ app.get('/api/config', (_req, res) => {
   res.json({
     publicUploadsEnabled,
     storageMode: communityStore.mode,
+    adminAuthEnabled: Boolean(adminPassword),
   });
+});
+
+app.post('/api/admin/session', (req, res) => {
+  if (!adminPassword) {
+    res.status(503).json({ error: 'Admin authentication is not configured on this deployment' });
+    return;
+  }
+
+  if (req.body?.password !== adminPassword) {
+    res.status(401).json({ error: 'Invalid admin password' });
+    return;
+  }
+
+  res.json({ ok: true });
 });
 
 app.get('/api/community', async (_req, res) => {
@@ -178,8 +203,8 @@ app.get('/api/community', async (_req, res) => {
 
 app.post('/api/community', async (req, res) => {
   try {
-    if (!publicUploadsEnabled) {
-      res.status(403).json({ error: 'Public uploads are disabled on this deployment' });
+    if (!publicUploadsEnabled || !isAdminRequest(req)) {
+      res.status(403).json({ error: 'Only administrators can upload community items' });
       return;
     }
 
@@ -192,8 +217,8 @@ app.post('/api/community', async (req, res) => {
 
 app.delete('/api/community/:id', async (req, res) => {
   try {
-    if (!publicUploadsEnabled) {
-      res.status(403).json({ error: 'Public deletion is disabled on this deployment' });
+    if (!publicUploadsEnabled || !isAdminRequest(req)) {
+      res.status(403).json({ error: 'Only administrators can delete community items' });
       return;
     }
 

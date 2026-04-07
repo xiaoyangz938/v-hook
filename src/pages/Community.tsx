@@ -25,6 +25,10 @@ type CommunityItem = {
 export default function Community() {
   const [items, setItems] = useState<CommunityItem[]>([]);
   const [publicUploadsEnabled, setPublicUploadsEnabled] = useState(true);
+  const [adminAuthEnabled, setAdminAuthEnabled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'online' | 'library' | 'recent'>('online');
   const [selectedItem, setSelectedItem] = useState<CommunityItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,13 +51,21 @@ export default function Community() {
     });
 
   useEffect(() => {
+    const storedPassword = window.localStorage.getItem('vhook-admin-password');
+    if (storedPassword) {
+      setAdminPassword(storedPassword);
+      setIsAdmin(true);
+    }
+
     fetch('/api/config')
       .then((response) => response.json())
-      .then((data: { publicUploadsEnabled?: boolean }) => {
+      .then((data: { publicUploadsEnabled?: boolean; adminAuthEnabled?: boolean }) => {
         setPublicUploadsEnabled(Boolean(data.publicUploadsEnabled));
+        setAdminAuthEnabled(Boolean(data.adminAuthEnabled));
       })
       .catch(() => {
         setPublicUploadsEnabled(false);
+        setAdminAuthEnabled(false);
       });
 
     fetch('/api/community')
@@ -86,6 +98,9 @@ export default function Community() {
     try {
       const response = await fetch(`/api/community/${id}`, {
         method: 'DELETE',
+        headers: {
+          'x-vhook-admin-password': adminPassword,
+        },
       });
 
       if (!response.ok) {
@@ -149,6 +164,7 @@ export default function Community() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-vhook-admin-password': adminPassword,
         },
         body: JSON.stringify(payload),
       });
@@ -170,6 +186,37 @@ export default function Community() {
       window.alert(error instanceof Error ? error.message : 'Upload failed. Please try again.');
       setIsSubmitting(false);
     }
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(data?.error || 'Admin login failed');
+      }
+
+      window.localStorage.setItem('vhook-admin-password', adminPassword);
+      setIsAdmin(true);
+      setIsAdminModalOpen(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Admin login failed');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    window.localStorage.removeItem('vhook-admin-password');
+    setAdminPassword('');
+    setIsAdmin(false);
   };
 
   return (
@@ -271,13 +318,28 @@ export default function Community() {
                   {activeTab === 'recent' && 'Recently Opened'}
                 </h1>
               </div>
-              {publicUploadsEnabled ? (
+              {publicUploadsEnabled && isAdmin ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-md hover:shadow-lg active:scale-95"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Creation
+                  </button>
+                  <button
+                    onClick={handleAdminLogout}
+                    className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                  >
+                    Admin Logout
+                  </button>
+                </div>
+              ) : adminAuthEnabled ? (
                 <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-all shadow-md hover:shadow-lg active:scale-95"
+                  onClick={() => setIsAdminModalOpen(true)}
+                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
                 >
-                  <Upload className="w-4 h-4" />
-                  Upload Creation
+                  Admin Login
                 </button>
               ) : (
                 <div className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500">
@@ -371,7 +433,7 @@ export default function Community() {
                     >
                       <Heart className="w-5 h-5" fill={selectedItem.isLiked ? 'currentColor' : 'none'} />
                     </button>
-                    {publicUploadsEnabled && (selectedItem.isUserCreated || selectedItem.author === 'You') && (
+                    {publicUploadsEnabled && isAdmin && (selectedItem.isUserCreated || selectedItem.author === 'You') && (
                       <button
                         onClick={() => handleDeleteItem(selectedItem.id)}
                         className="p-3 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-colors"
@@ -414,6 +476,56 @@ export default function Community() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isAdminModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAdminModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative z-10 w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-gray-100 p-6">
+                <h2 className="text-xl font-bold text-gray-900">Admin Login</h2>
+                <button
+                  onClick={() => setIsAdminModalOpen(false)}
+                  className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAdminLogin} className="space-y-5 p-6">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Admin Password</label>
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="Enter admin password"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 outline-none transition-all focus:bg-white focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-gray-900 px-4 py-2.5 font-medium text-white transition-colors hover:bg-gray-800"
+                >
+                  Login as Admin
+                </button>
+              </form>
             </motion.div>
           </div>
         )}

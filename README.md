@@ -77,3 +77,10 @@ The public site keeps uploads disabled by default through:
 - `VHOOK_ENABLE_PUBLIC_UPLOADS=false`
 
 That keeps the open-source site publicly viewable while preventing strangers from changing community data until you intentionally turn uploads on later.
+
+If you want uploads and deletions to be visible only to you as the administrator:
+
+- set `VHOOK_ENABLE_PUBLIC_UPLOADS=true`
+- set `VHOOK_ADMIN_PASSWORD` to a private password
+
+On the public site, visitors will still only be able to browse. Only someone who knows the admin password will see working upload and delete actions after logging in.
